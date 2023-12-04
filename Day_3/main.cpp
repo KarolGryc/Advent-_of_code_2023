@@ -23,20 +23,13 @@ int main()
     }
 
     // Part 1
-    // std::vector<std::vector<bool>> mask = genMask(engineMap);
-    // size_t sum = engineValue(engineMap, mask);
+    std::vector<std::vector<bool>> mask = genMask(engineMap);
+    size_t sum = engineValue(engineMap, mask);
 
     // Part 2
-    auto mask = genPairMask(engineMap);
-    // for(int i = 0; i < mask.size(); ++i)
-    // {
-    //     for(int j = 0; j < mask[i].size(); ++j)
-    //     {
-    //         std::cout << mask[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    std::cout << engineGearsValue(engineMap, mask) << std::endl;
+    auto pairMask = genPairMask(engineMap);
+    std::cout << "Part 1: " << sum << std::endl;
+    std::cout << "Part 2: " << engineGearsValue(engineMap, pairMask) << std::endl;
 
 }
 
