@@ -4,6 +4,8 @@
 #include <vector>
 #include <unordered_map>
 #include <queue>
+#define PART2 1
+
 
 enum class HandType
 {
@@ -17,6 +19,11 @@ enum class HandType
 };
 
 std::unordered_map<char, int> cardValues = {
+    #if PART2
+    {'J', 1},
+    #else
+    {'J', 11},
+    #endif
     {'2', 2},
     {'3', 3},
     {'4', 4},
@@ -26,7 +33,6 @@ std::unordered_map<char, int> cardValues = {
     {'8', 8},
     {'9', 9},
     {'T', 10},
-    {'J', 11},
     {'Q', 12},
     {'K', 13},
     {'A', 14}
@@ -60,27 +66,6 @@ struct Hand
     }
 };
 
-
-// auto && cmp = [](const Hand& a, const Hand& b)
-// {
-//     // all Hand are different
-//     if (a.type != b.type)
-//     {
-//         return a.type > b.type;
-//     }
-//     else
-//     {
-//         constexpr int handSize = 5;
-//         for (int i = 0; i < handSize; i++)
-//         {
-//             if (a.cards[i] != b.cards[i])
-//             {
-//                 return cardValues[a.cards[i]] > cardValues[b.cards[i]];
-//             }
-//         }
-//     }
-// };
-
 HandType checkType(const std::string& cards)
 {
     std::unordered_map<char, int> cardCount;
@@ -92,9 +77,16 @@ HandType checkType(const std::string& cards)
     int maxCount = 0;
     for (auto& pair : cardCount)
     {
+        #if PART2
+        if(pair.first == 'J')
+            continue;
+        #endif
         maxCount = std::max(maxCount, pair.second);
     }
-    
+    #if PART2
+    maxCount += cardCount['J'];
+    cardCount.erase('J');
+    #endif
     switch (maxCount)
     {
         case 1:
@@ -106,6 +98,7 @@ HandType checkType(const std::string& cards)
         case 4:
             return HandType::fourOfAKind;
         case 5:
+        case 10: // case JJJJJ )()
             return HandType::fiveOfAKind;
         default:
             return HandType::highCard;
@@ -123,7 +116,6 @@ int main()
         std::string cards;
         std::istringstream ss(line);
         ss >> cards >> bid;
-        std::cout << cards << " " << bid << std::endl;
         hands.push({checkType(cards), cards, bid});
     }
     std::cout << std::endl;
@@ -132,7 +124,7 @@ int main()
     while(hands.size() > 0)
     {
         sum += hands.top().bid * hands.size();
-        std::cout << hands.top().cards << " " << hands.top().bid << std::endl;
+        std::cout << hands.top().cards << " " << (int)hands.top().type << " " << hands.top().bid << "*" << hands.size() << " = " << hands.top().bid * hands.size() << std::endl;
         hands.pop();
     }
     std::cout << std::endl << sum;
