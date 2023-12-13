@@ -4,12 +4,7 @@
 #include <fstream>
 #include <unordered_map>
 
-struct Point
-{
-    int64_t x;
-    int64_t y;
-};
-
+// <<==== Direction =====>>
 enum Direction
 {
     U,
@@ -17,6 +12,47 @@ enum Direction
     L,
     R
 };
+
+void rotateDirection(Direction & dir, char pipe)
+{
+    if(pipe == '|' || pipe == '-')
+        return;
+    if(pipe == 'L')
+        dir = (dir == D) ? R : U;
+    else if(pipe == 'J')
+        dir = (dir == D) ? L : U;
+    else if(pipe == '7')
+        dir = (dir == U) ? L : D;
+    else if(pipe == 'F')
+        dir = (dir == U) ? R : D;
+}
+
+// <<==== Point =====>>
+
+struct Point
+{
+    int64_t x;
+    int64_t y;
+};
+
+bool isValidPos(const std::vector<std::string> & map, const Point & position)
+{
+    return position.x > 0 && position.y > 0 && position.x < map[position.y].size() && position.y < map.size();
+}
+
+void movePoint(Point& pos, Direction dir)
+{
+    if(dir == U)
+        pos.y--;
+    else if(dir == D)
+        pos.y++;
+    else if(dir == L)
+        pos.x--;
+    else if(dir == R)
+        pos.x++;
+}
+
+// <<===== Map =======>>
 
 char getPipeType(Direction startDir, Direction endDir)
 {
@@ -52,51 +88,6 @@ Point findStart(const std::vector<std::string> & map)
     return {-1, -1};
 }
 
-bool isValidPos(const std::vector<std::string> & map, const Point & position)
-{
-    return position.x > 0 && position.y > 0 && position.x < map[position.y].size() && position.y < map.size();
-}
-
-std::ostream & operator<<(std::ostream & os, const Direction & dir)
-{
-    if(dir == U)
-        os << "UP";
-    else if(dir == D)
-        os << "DOWN";
-    else if(dir == L)
-        os << "LEFT";
-    else if(dir == R)
-        os << "RIGHT";
-    return os;
-}
-
-// we are supposing that we rotation is correct
-void rotateDirection(Direction& dir, char pipe)
-{
-    if(pipe == '|' || pipe == '-')
-        return;
-    if(pipe == 'L')
-        dir = (dir == D) ? R : U;
-    else if(pipe == 'J')
-        dir = (dir == D) ? L : U;
-    else if(pipe == '7')
-        dir = (dir == U) ? L : D;
-    else if(pipe == 'F')
-        dir = (dir == U) ? R : D;
-}
-
-void movePosition(Point& pos, Direction dir)
-{
-    if(dir == U)
-        pos.y--;
-    else if(dir == D)
-        pos.y++;
-    else if(dir == L)
-        pos.x--;
-    else if(dir == R)
-        pos.x++;
-}
-
 uint64_t loopLength(const std::vector<std::string> & map)
 {
 
@@ -123,7 +114,7 @@ uint64_t loopLength(const std::vector<std::string> & map)
 
     std::vector<std::vector<bool>> visited(map.size(), std::vector<bool>(map[0].size(), false));
     do{
-        movePosition(pos, dir);
+        movePoint(pos, dir);
         visited[pos.y][pos.x] = true;
         rotateDirection(dir, map[pos.y][pos.x]);
         length++;
@@ -155,7 +146,7 @@ uint64_t areaEnclosed(std::vector<std::string> & map)
     // finding loop
     std::vector<std::vector<bool>> loopElement(map.size(), std::vector<bool>(map[0].size(), false));
     do{
-        movePosition(pos, dir);
+        movePoint(pos, dir);
         loopElement[pos.y][pos.x] = true;
         rotateDirection(dir, map[pos.y][pos.x]);
     }while(map[pos.y][pos.x] != 'S');
@@ -166,20 +157,17 @@ uint64_t areaEnclosed(std::vector<std::string> & map)
     uint64_t count = 0;
     for(int y = 0; y < map.size(); y++)
     {
+        bool inside = false;
         for(int x = 0; x < map[y].size(); x++)
         {
             if(loopElement[y][x])
-                continue;
-
-            bool inside = false;
-            for(int dx = x; dx >= 0; dx--)
-            {
-                const char& curr = map[y][dx]; 
-                if(loopElement[y][dx] && (curr == '|' || curr == 'F' || curr == '7' ))
+                if(map[y][x] == '|' || map[y][x] == 'F' || map[y][x] == '7' )
                     inside = !inside;
-            }
-            if(inside)
-                count++;
+                else 
+                    continue;
+            else
+                if(inside)
+                    count++;
         }
     }
     return count;
@@ -188,7 +176,7 @@ uint64_t areaEnclosed(std::vector<std::string> & map)
 // code above needs to be refactored
 int main()
 {
-    std::ifstream file("test.txt");
+    std::ifstream file("input.txt");
     std::string line;
     std::vector<std::string> lines;
     while (std::getline(file, line))
